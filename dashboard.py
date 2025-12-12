@@ -15,6 +15,28 @@ from PIL import Image
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
+# Ensure Playwright browsers are installed (Critical for Streamlit Cloud)
+def ensure_browsers_installed():
+    import subprocess
+    try:
+        # Check if we need to install by trying to launch dry-run
+        # Or just be safe and install minimal deps
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+             p.chromium.launch(headless=True)
+    except Exception:
+        print("Installing Playwright browsers...")
+        try:
+            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+            print("Playwright browsers installed!")
+        except Exception as e:
+            print(f"Failed to install browsers: {e}")
+
+try:
+    ensure_browsers_installed()
+except Exception as e:
+    print(f"Browser check warning: {e}")
+
 from config import Config
 from models import TaskStatus
 from orchestrator import AutomationOrchestrator
