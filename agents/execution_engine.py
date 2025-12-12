@@ -39,6 +39,10 @@ class ExecutionEngineAgent:
         if headless is None:
             headless = Config.HEADLESS
         
+        # SAFETY: Always force headless in cloud environments (no display available)
+        if Config.IS_CLOUD_ENVIRONMENT:
+            headless = True
+        
         # Initialize screenshot manager
         self.screenshot_manager = ScreenshotManager(script.task_id)
         

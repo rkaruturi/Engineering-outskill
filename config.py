@@ -43,8 +43,33 @@ def get_config_value(key: str, default: str = "") -> str:
         
     return default
 
+def is_cloud_environment() -> bool:
+    """Detect if running in a cloud/containerized environment without display"""
+    # Check for common cloud environment indicators
+    # Streamlit Cloud sets specific env vars
+    if os.getenv("STREAMLIT_SHARING_MODE"):
+        return True
+    # Check if DISPLAY is not set (Linux without X server)
+    if os.name != 'nt' and not os.getenv("DISPLAY"):
+        return True
+    # Check for common container indicators
+    if os.path.exists("/.dockerenv"):
+        return True
+    if os.getenv("KUBERNETES_SERVICE_HOST"):
+        return True
+    # Check for Streamlit Cloud's home directory pattern
+    if os.getenv("HOME", "").startswith("/home/appuser"):
+        return True
+    return False
+
+# Cache the cloud detection result
+IS_CLOUD = is_cloud_environment()
+
 class Config:
     """Central configuration for the automation system"""
+    
+    # Environment Detection
+    IS_CLOUD_ENVIRONMENT = IS_CLOUD
     
     # OpenRouter API Configuration
     OPENROUTER_API_KEY = get_config_value("OPENROUTER_API_KEY", "")
@@ -57,8 +82,10 @@ class Config:
     DAILY_BUDGET = float(get_config_value("DAILY_BUDGET", "5.00"))
     
     # Playwright Configuration
-    # Default to HEADLESS=true for compatibility with Streamlit Cloud
-    HEADLESS = get_config_value("HEADLESS", "true").lower() == "true"
+    # In cloud environments, ALWAYS force headless mode (no display available)
+    # Locally, respect the HEADLESS env var (default true)
+    _headless_setting = get_config_value("HEADLESS", "true").lower() == "true"
+    HEADLESS = True if IS_CLOUD else _headless_setting
     BROWSER_TYPE = get_config_value("BROWSER_TYPE", "chromium")
     DEFAULT_TIMEOUT = int(get_config_value("DEFAULT_TIMEOUT", "30000"))
     VIEWPORT_WIDTH = 1920

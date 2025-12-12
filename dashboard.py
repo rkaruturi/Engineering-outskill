@@ -96,7 +96,16 @@ def sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### ⚙️ Settings")
     
-    headless = st.sidebar.checkbox("Headless Mode", value=Config.HEADLESS)
+    # In cloud environments, force headless mode (no display available)
+    if Config.IS_CLOUD_ENVIRONMENT:
+        st.sidebar.checkbox("Headless Mode", value=True, disabled=True, 
+                           help="Headless mode is required in cloud environments")
+        st.sidebar.caption("☁️ Cloud detected - headless mode forced")
+        headless = True  # Always True in cloud
+    else:
+        headless = st.sidebar.checkbox("Headless Mode", value=Config.HEADLESS,
+                                       help="Uncheck to see the browser window (local only)")
+    
     auto_heal = st.sidebar.checkbox("Auto-Heal", value=Config.AUTO_HEAL)
     
     st.sidebar.markdown(f"""
