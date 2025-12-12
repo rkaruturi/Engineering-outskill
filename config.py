@@ -41,17 +41,18 @@ class Config:
     # OpenRouter API Configuration
     OPENROUTER_API_KEY = get_config_value("OPENROUTER_API_KEY", "")
     OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-    DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "anthropic/claude-3.5-haiku")
-    FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "openai/gpt-4o-mini")
+    DEFAULT_MODEL = get_config_value("DEFAULT_MODEL", "anthropic/claude-3.5-haiku")
+    FALLBACK_MODEL = get_config_value("FALLBACK_MODEL", "openai/gpt-4o-mini")
     
     # Cost Controls
-    MAX_COST_PER_RUN = float(os.getenv("MAX_COST_PER_RUN", "0.50"))
-    DAILY_BUDGET = float(os.getenv("DAILY_BUDGET", "5.00"))
+    MAX_COST_PER_RUN = float(get_config_value("MAX_COST_PER_RUN", "0.50"))
+    DAILY_BUDGET = float(get_config_value("DAILY_BUDGET", "5.00"))
     
     # Playwright Configuration
-    HEADLESS = os.getenv("HEADLESS", "false").lower() == "true"
-    BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")
-    DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", "30000"))
+    # Default to HEADLESS=true for compatibility with Streamlit Cloud
+    HEADLESS = get_config_value("HEADLESS", "true").lower() == "true"
+    BROWSER_TYPE = get_config_value("BROWSER_TYPE", "chromium")
+    DEFAULT_TIMEOUT = int(get_config_value("DEFAULT_TIMEOUT", "30000"))
     VIEWPORT_WIDTH = 1920
     VIEWPORT_HEIGHT = 1080
     
@@ -64,8 +65,8 @@ class Config:
     SCRIPTS_DIR = ARTIFACTS_DIR / "scripts"
     
     # Retry & Healing Settings
-    MAX_REPAIR_ATTEMPTS = int(os.getenv("MAX_REPAIR_ATTEMPTS", "3"))
-    AUTO_HEAL = os.getenv("AUTO_HEAL", "true").lower() == "true"
+    MAX_REPAIR_ATTEMPTS = int(get_config_value("MAX_REPAIR_ATTEMPTS", "3"))
+    AUTO_HEAL = get_config_value("AUTO_HEAL", "true").lower() == "true"
     
     # Model Pricing (per 1M tokens)
     MODEL_PRICING = {
