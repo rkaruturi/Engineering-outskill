@@ -83,8 +83,8 @@ class Config:
     
     # Playwright Configuration
     # In cloud environments, ALWAYS force headless mode (no display available)
-    # Locally, respect the HEADLESS env var (default true)
-    _headless_setting = get_config_value("HEADLESS", "true").lower() == "true"
+    # Locally, default to headless=false so users can see the browser
+    _headless_setting = get_config_value("HEADLESS", "false").lower() == "true"
     HEADLESS = True if IS_CLOUD else _headless_setting
     BROWSER_TYPE = get_config_value("BROWSER_TYPE", "chromium")
     DEFAULT_TIMEOUT = int(get_config_value("DEFAULT_TIMEOUT", "30000"))
