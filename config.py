@@ -13,8 +13,26 @@ load_dotenv()
 class Config:
     """Central configuration for the automation system"""
     
+    # Helper to get config from Env or Streamlit Secrets
+    @staticmethod
+    def _get_value(key: str, default: str = "") -> str:
+        # 1. Try environment variable
+        value = os.getenv(key)
+        if value:
+            return value
+            
+        # 2. Try Streamlit secrets
+        try:
+            import streamlit as st
+            if key in st.secrets:
+                return st.secrets[key]
+        except:
+            pass
+            
+        return default
+
     # OpenRouter API Configuration
-    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+    OPENROUTER_API_KEY = _get_value.__func__("OPENROUTER_API_KEY", "")
     OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
     DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "anthropic/claude-3.5-haiku")
     FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "openai/gpt-4o-mini")

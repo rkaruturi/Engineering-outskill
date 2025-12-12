@@ -400,6 +400,47 @@ def costs_page():
     Edit these settings in the `.env` file.
     """)
 
+    # OpenRouter Live Status
+    st.markdown("---")
+    st.subheader("🔑 OpenRouter API Status")
+    
+    if st.button("Check API Key Details"):
+        with st.spinner("Querying OpenRouter API..."):
+            try:
+                import urllib.request
+                import json
+                
+                api_key = Config.OPENROUTER_API_KEY
+                if not api_key:
+                    st.error("No API key configured.")
+                else:
+                    req = urllib.request.Request("https://openrouter.ai/api/v1/auth/key")
+                    req.add_header("Authorization", f"Bearer {api_key}")
+                    
+                    with urllib.request.urlopen(req, timeout=10) as response:
+                        if response.status == 200:
+                            data = json.loads(response.read()).get('data', {})
+                            st.success("✅ Connected to OpenRouter")
+                            
+                            col_a, col_b, col_c = st.columns(3)
+                            
+                            limit = data.get('limit')
+                            usage = data.get('usage')
+                            
+                            col_a.metric("Credit Limit", f"${limit}" if limit else "Unknown")
+                            col_b.metric("Used So Far", f"${usage:.4f}" if usage is not None else "Unknown")
+                            
+                            if limit and usage is not None:
+                                remaining = float(limit) - float(usage)
+                                col_c.metric("Actual Remaining", f"${remaining:.4f}")
+                            else:
+                                col_c.metric("Actual Remaining", "Unlimited")
+                        else:
+                            st.error(f"Failed to check key: {response.status}")
+                            
+            except Exception as e:
+                st.error(f"Error checking API: {e}")
+
 
 # Main app
 def main():
