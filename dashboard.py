@@ -249,12 +249,22 @@ def display_test_run(test_run):
     with col4:
         st.metric("Total Cost", f"${test_run.total_cost:.4f}")
     
+    # Check if video exists to determine tabs
+    last_exec = test_run.executions[-1] if test_run.executions else None
+    has_video = last_exec and last_exec.video_path and Path(last_exec.video_path).exists()
+    
+    # Show video prominently at the top if available (great for demos!)
+    if has_video:
+        st.markdown("---")
+        st.markdown("### 🎬 Recording")
+        st.video(last_exec.video_path)
+        st.caption("📹 Watch the browser automation in action!")
+    
     # Tabs for different views
     tab1, tab2, tab3 = st.tabs(["📸 Screenshots", "📜 Logs", "💻 Code"])
     
     with tab1:
-        if test_run.executions and test_run.executions[-1].screenshots:
-            last_exec = test_run.executions[-1]
+        if last_exec and last_exec.screenshots:
             st.markdown("**Captured Screenshots:**")
             
             cols = st.columns(3)
@@ -265,11 +275,6 @@ def display_test_run(test_run):
                         st.image(img, caption=Path(screenshot_path).stem, use_column_width=True)
                     except Exception as e:
                         st.error(f"Could not load {screenshot_path}: {e}")
-            
-            # Video
-            if last_exec.video_path and Path(last_exec.video_path).exists():
-                st.markdown("**Recorded Video:**")
-                st.video(last_exec.video_path)
         else:
             st.info("No screenshots available")
     
