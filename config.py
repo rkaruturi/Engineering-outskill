@@ -11,27 +11,35 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Helper function to get config from various sources
+# Circuit breaker to prevent repeated "No secrets found" warnings locally
+_secrets_disabled = False
+
 def get_config_value(key: str, default: str = "") -> str:
+    global _secrets_disabled
+    
     # 1. Try environment variable
     value = os.getenv(key)
     if value:
         return value.strip()
         
-    # 2. Try Streamlit secrets
-    try:
-        import streamlit as st
-        # Check root level secrets
-        if key in st.secrets:
-            return st.secrets[key]
-            
-        # Check "env" section (common pattern)
-        if "env" in st.secrets and key in st.secrets.env:
-            return st.secrets.env[key]
-            
-    except ImportError:
-        pass # Not running in streamlit
-    except Exception as e:
-        print(f"Warning: Failed to read secrets for {key}: {e}")
+    # 2. Try Streamlit secrets (if not disabled)
+    if not _secrets_disabled:
+        try:
+            import streamlit as st
+            # Check root level secrets
+            if key in st.secrets:
+                return st.secrets[key]
+                
+            # Check "env" section (common pattern)
+            if "env" in st.secrets and key in st.secrets.env:
+                return st.secrets.env[key]
+                
+        except (FileNotFoundError, ImportError):
+            # Secrets file missing or not in streamlit, disable for future calls
+            _secrets_disabled = True
+        except Exception:
+            # Other errors, just ignore
+            pass
         
     return default
 
