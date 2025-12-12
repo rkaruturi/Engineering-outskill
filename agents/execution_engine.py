@@ -57,9 +57,22 @@ class ExecutionEngineAgent:
             
             # Launch browser
             browser_type = getattr(self.playwright, Config.BROWSER_TYPE)
+            
+            # Build browser args - add necessary flags for containerized/cloud environments
+            browser_args = ['--start-maximized']
+            if headless:
+                # These args are required for running in containers without X server
+                browser_args.extend([
+                    '--disable-gpu',
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-setuid-sandbox',
+                    '--disable-software-rasterizer',
+                ])
+            
             self.browser = await browser_type.launch(
                 headless=headless,
-                args=['--start-maximized']
+                args=browser_args
             )
             
             # Create context with video recording

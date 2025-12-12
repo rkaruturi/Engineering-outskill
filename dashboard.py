@@ -31,11 +31,23 @@ def ensure_browsers_installed():
         # Or just be safe and install minimal deps
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
-             p.chromium.launch(headless=True)
+            # Use proper args for containerized/cloud environments
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    '--disable-gpu',
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-setuid-sandbox',
+                    '--disable-software-rasterizer',
+                ]
+            )
+            browser.close()
     except Exception:
         print("Installing Playwright browsers...")
         try:
             subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+            subprocess.run([sys.executable, "-m", "playwright", "install-deps", "chromium"], check=True, capture_output=True)
             print("Playwright browsers installed!")
         except Exception as e:
             print(f"Failed to install browsers: {e}")
