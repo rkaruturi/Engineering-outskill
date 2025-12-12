@@ -4,6 +4,14 @@ Provides task input, execution monitoring, results visualization, and cost track
 """
 
 import streamlit as st
+
+# Page configuration MUST be the first Streamlit command
+st.set_page_config(
+    page_title="Self-Healing Browser Automation",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 import asyncio
 import sys
 from pathlib import Path
@@ -43,13 +51,7 @@ from orchestrator import AutomationOrchestrator
 from utils import get_cost_tracker, ScreenshotManager
 
 
-# Page configuration
-st.set_page_config(
-    page_title="Self-Healing Browser Automation",
-    page_icon="🤖",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+
 
 # Initialize session state
 if 'test_runs' not in st.session_state:
