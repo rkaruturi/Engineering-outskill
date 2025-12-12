@@ -4,6 +4,7 @@ Runs automation scripts with comprehensive logging and artifact capture.
 """
 
 import asyncio
+import os
 import sys
 import traceback
 from datetime import datetime
@@ -16,6 +17,35 @@ from config import Config
 from models import GeneratedScript, ExecutionResult, TaskStatus
 from utils import ScreenshotManager
 
+# Virtual display for cloud environments (allows headed mode without physical display)
+_virtual_display = None
+
+def start_virtual_display():
+    """Start a virtual display for headed browser mode on servers without display"""
+    global _virtual_display
+    if _virtual_display is not None:
+        return True  # Already started
+    
+    try:
+        from pyvirtualdisplay import Display
+        _virtual_display = Display(visible=False, size=(1920, 1080))
+        _virtual_display.start()
+        print("🖥️  Virtual display started for headed browser mode")
+        return True
+    except Exception as e:
+        print(f"⚠️  Could not start virtual display: {e}")
+        return False
+
+def stop_virtual_display():
+    """Stop the virtual display"""
+    global _virtual_display
+    if _virtual_display is not None:
+        try:
+            _virtual_display.stop()
+            _virtual_display = None
+        except:
+            pass
+
 
 class ExecutionEngineAgent:
     """Executes Playwright automation scripts"""
@@ -26,6 +56,7 @@ class ExecutionEngineAgent:
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
         self.screenshot_manager: Optional[ScreenshotManager] = None
+        self._using_virtual_display = False
     
     async def execute_script(
         self, 
@@ -39,9 +70,18 @@ class ExecutionEngineAgent:
         if headless is None:
             headless = Config.HEADLESS
         
-        # SAFETY: Always force headless in cloud environments (no display available)
-        if Config.IS_CLOUD_ENVIRONMENT:
-            headless = True
+        # In cloud environments without display, use virtual display for headed mode
+        if Config.IS_CLOUD_ENVIRONMENT and not headless:
+            # User wants headed mode, try to start virtual display
+            if start_virtual_display():
+                self._using_virtual_display = True
+                print("🎬 Running in headed mode with virtual display (great for demos!)")
+            else:
+                # Fall back to headless if virtual display fails
+                headless = True
+                print("⚠️  Falling back to headless mode")
+        elif Config.IS_CLOUD_ENVIRONMENT and headless:
+            print("🔇 Running in headless mode")
         
         # Initialize screenshot manager
         self.screenshot_manager = ScreenshotManager(script.task_id)

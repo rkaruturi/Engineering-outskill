@@ -96,15 +96,23 @@ def sidebar():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### ⚙️ Settings")
     
-    # In cloud environments, force headless mode (no display available)
+    # Headless mode toggle - now works on cloud with virtual display!
     if Config.IS_CLOUD_ENVIRONMENT:
-        st.sidebar.checkbox("Headless Mode", value=True, disabled=True, 
-                           help="Headless mode is required in cloud environments")
-        st.sidebar.caption("☁️ Cloud detected - headless mode forced")
-        headless = True  # Always True in cloud
+        headless = st.sidebar.checkbox(
+            "Headless Mode", 
+            value=False,  # Default to unchecked for demo purposes
+            help="Uncheck for demo mode (uses virtual display). Check for faster execution."
+        )
+        if not headless:
+            st.sidebar.caption("🎬 Demo mode: Virtual display enabled")
+        else:
+            st.sidebar.caption("☁️ Cloud: Headless mode (faster)")
     else:
-        headless = st.sidebar.checkbox("Headless Mode", value=Config.HEADLESS,
-                                       help="Uncheck to see the browser window (local only)")
+        headless = st.sidebar.checkbox(
+            "Headless Mode", 
+            value=Config.HEADLESS,
+            help="Uncheck to see the browser window"
+        )
     
     auto_heal = st.sidebar.checkbox("Auto-Heal", value=Config.AUTO_HEAL)
     
