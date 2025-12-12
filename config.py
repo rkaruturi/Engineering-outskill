@@ -13,33 +13,46 @@ load_dotenv()
 # Helper function to get config from various sources
 # Circuit breaker to prevent repeated "No secrets found" warnings locally
 _secrets_disabled = False
+_secrets_checked = False
 
 def get_config_value(key: str, default: str = "") -> str:
-    global _secrets_disabled
+    global _secrets_disabled, _secrets_checked
     
-    # 1. Try environment variable
+    # 1. Try environment variable first (always preferred)
     value = os.getenv(key)
     if value:
         return value.strip()
         
-    # 2. Try Streamlit secrets (if not disabled)
+    # 2. Try Streamlit secrets (if not disabled and file exists)
     if not _secrets_disabled:
-        try:
-            import streamlit as st
-            # Check root level secrets
-            if key in st.secrets:
-                return st.secrets[key]
-                
-            # Check "env" section (common pattern)
-            if "env" in st.secrets and key in st.secrets.env:
-                return st.secrets.env[key]
-                
-        except (FileNotFoundError, ImportError):
-            # Secrets file missing or not in streamlit, disable for future calls
-            _secrets_disabled = True
-        except Exception:
-            # Other errors, just ignore
-            pass
+        # Only check for secrets file once
+        if not _secrets_checked:
+            _secrets_checked = True
+            # Check if any secrets file exists before trying to access st.secrets
+            secrets_paths = [
+                Path.home() / ".streamlit" / "secrets.toml",
+                Path(__file__).parent / ".streamlit" / "secrets.toml",
+            ]
+            if not any(p.exists() for p in secrets_paths):
+                _secrets_disabled = True
+        
+        if not _secrets_disabled:
+            try:
+                import streamlit as st
+                # Check root level secrets
+                if key in st.secrets:
+                    return st.secrets[key]
+                    
+                # Check "env" section (common pattern)
+                if "env" in st.secrets and key in st.secrets.env:
+                    return st.secrets.env[key]
+                    
+            except (FileNotFoundError, ImportError, KeyError):
+                # Secrets file missing or not in streamlit, disable for future calls
+                _secrets_disabled = True
+            except Exception:
+                # Other errors, just ignore
+                pass
         
     return default
 
