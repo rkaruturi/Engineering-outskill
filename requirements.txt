@@ -1,0 +1,23 @@
+# Core Browser Automation
+playwright==1.41.0
+
+# LLM API Integration (OpenRouter)
+openai>=2.11.0
+
+# Web Dashboard
+streamlit==1.30.0
+
+# Image Processing & Visual Diff
+Pillow==10.2.0
+pixelmatch==0.3.0
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Data & Utilities
+pydantic==2.5.3
+asyncio==3.4.3
+
+# Testing & Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
